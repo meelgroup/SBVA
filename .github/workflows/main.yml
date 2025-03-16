@@ -62,21 +62,21 @@ jobs:
       
     - name: Upload Artifact - Linux
       if: matrix.os == 'ubuntu-20.04' && matrix.staticcompile == 'ON'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: sbva-linux-amd64
         path: sbva
     
     - name: Upload Artifact - Mac
       if: matrix.os == 'macos-13' && matrix.staticcompile == 'ON'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: sbva-mac-amd64
         path: sbva
 
     - name: Upload Artifact - Windows
       if: matrix.os == 'windows-2022' && matrix.staticcompile == 'ON'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: sbva-win64.exe
         path: Release\sbva.exe
