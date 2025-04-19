@@ -18,11 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-cmake_minimum_required (VERSION 3.10 FATAL_ERROR)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+cmake_minimum_required (VERSION 3.12 FATAL_ERROR)
 
 message(STATUS "LIB directory is '${CMAKE_INSTALL_LIBDIR}'")
 message(STATUS "BIN directory is '${CMAKE_INSTALL_BINDIR}'")
@@ -83,7 +79,11 @@ foreach (build_config ${build_types})
     endforeach()
 endforeach()
 
-project (sbva)
+project(sbva)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 enable_language( CXX )
 include (GenerateExportHeader)
 include (GNUInstallDirs)
@@ -246,7 +246,6 @@ if (NOT WIN32)
     if(NOT ENABLE_TESTING AND ${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT COVERAGE)
         #dd_cxx_flag_if_supported("-fvisibility=hidden")
     endif()
-    add_compile_options("-fPIC")
 
     if(CMAKE_BUILD_TYPE STREQUAL "Release")
         #add_cxx_flag_if_supported("-flto")
@@ -281,7 +280,6 @@ endif()
 
 if (NOT WIN32)
     MESSAGE(STATUS "${CMAKE_C_FLAGS}")
-    add_c_flag_if_supported("-fPIC")
     add_c_flag_if_supported("-std=c99")
     add_c_flag_if_supported("-Wall")
     add_c_flag_if_supported("-msse4.2")
@@ -385,6 +383,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT EMSCRIPTEN)
         )
 
         ADD_CUSTOM_COMMAND(
+            POST_BUILD
             TARGET man_sbva
             COMMAND help2man
             ARGS --version-string=${SBVA_FULL_VERSION} --help-option="-h" $<TARGET_FILE:sbva-bin> -o ${CMAKE_CURRENT_BINARY_DIR}/sbva.1
