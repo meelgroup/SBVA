@@ -9,6 +9,21 @@ has a few improvements, notably it can be used as a library, and has a
 deterministic timeout via steps. It also has a manual page, and has better help.
 
 ## Build
+It is strongly recommended to not build, but to use the precompiled
+binaries as in our [release](https://github.com/meelgroup/sbva/releases).
+The second best thing to use is Nix. Simply [install
+nix](https://nixos.org/download/) and then:
+```shell
+git clone https://github.com/meelgroup/sbva
+cd sbva
+nix shell
+```
+
+Then you will have `sbva` binary available and ready to use.
+
+If this is somehow not what you want, you can also build it. See the [GitHub
+Action](https://github.com/meelgroup/sbva/actions/workflows/build.yml) for the
+specific set of steps, mostly:
 
 ```
 git clone https://github.com/meelgroup/SBVA
