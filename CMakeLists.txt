@@ -18,28 +18,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-cmake_minimum_required (VERSION 3.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
-message(STATUS "LIB directory is '${CMAKE_INSTALL_LIBDIR}'")
-message(STATUS "BIN directory is '${CMAKE_INSTALL_BINDIR}'")
-
-if(POLICY CMP0048)
-    cmake_policy(SET CMP0048 NEW)
-endif()
-
-
-if(POLICY CMP0022)
-    cmake_policy(SET CMP0022 NEW)
-endif()
-
-if(POLICY CMP0046)
-    cmake_policy(SET CMP0046 NEW)
-endif()
-
-if(POLICY CMP0026)
-    cmake_policy(SET CMP0026 NEW)
-endif()
-
+# CMP0104 (CUDA architectures default) was introduced in 3.18; guard needed
 if(POLICY CMP0104)
     cmake_policy(SET CMP0104 NEW)
 endif()
@@ -66,9 +47,9 @@ message(STATUS "Doing a ${CMAKE_BUILD_TYPE} build")
 
 # Filter out definition of NDEBUG from the default build configuration flags.
 # We will add this ourselves if we want to disable assertions
-foreach (build_config ${build_types})
+foreach(build_config ${build_types})
     string(TOUPPER ${build_config} upper_case_build_config)
-    foreach (language CXX C)
+    foreach(language CXX C)
         set(VAR_TO_MODIFY "CMAKE_${language}_FLAGS_${upper_case_build_config}")
         string(REGEX REPLACE "(^| )[/-]D *NDEBUG($| )"
                              " "
@@ -84,31 +65,33 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-enable_language( CXX )
-include (GenerateExportHeader)
-include (GNUInstallDirs)
+include(GenerateExportHeader)
+include(GNUInstallDirs)
+
+message(STATUS "LIB directory is '${CMAKE_INSTALL_LIBDIR}'")
+message(STATUS "BIN directory is '${CMAKE_INSTALL_BINDIR}'")
 
 # contains some library search cmake scripts
-SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 # generate JSON file of compile commands -- useful for code extension
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 option(BUILD_SHARED_LIBS "Build the shared library" ON)
 option(STATICCOMPILE "Compile to static executable" OFF)
-if (STATICCOMPILE)
+if(STATICCOMPILE)
     set(BUILD_SHARED_LIBS OFF)
 endif()
 
-if ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
     if(NOT BUILD_SHARED_LIBS)
-        MESSAGE(STATUS "Compiling for static library use")
-        if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        message(STATUS "Compiling for static library use")
+        if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
             set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -Wl,--whole-archive -ldl -Wl,--no-whole-archive -static ")
             #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
         endif()
 
-        SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
         # removing -rdynamic that's automatically added
         foreach (language CXX C)
@@ -121,7 +104,7 @@ if ((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Dar
             set(${VAR_TO_MODIFY} "${replacement}" CACHE STRING "Default flags for ${build_config} configuration" FORCE)
         endforeach()
     else()
-        MESSAGE(STATUS "Compiling for dynamic library use")
+        message(STATUS "Compiling for dynamic library use")
     endif()
 endif()
 
@@ -131,29 +114,28 @@ macro(add_cxx_flag_if_supported flagname)
   check_cxx_compiler_flag("${flagname}" HAVE_FLAG_${flagname})
 
   if(HAVE_FLAG_${flagname})
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flagname}" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flagname}")
   endif()
 endmacro()
 macro(add_c_flag_if_supported flagname)
   check_c_compiler_flag("${flagname}" HAVE_FLAG_${flagname})
 
   if(HAVE_FLAG_${flagname})
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flagname}" )
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flagname}")
   endif()
 endmacro()
 
 # Note: O3 gives slight speed increase, 1 more solved from SAT Comp'14 @ 3600s
-if (NOT MSVC)
-    add_compile_options( -g)
-    add_compile_options( -pthread )
+if(NOT MSVC)
+    add_compile_options(-g)
+    add_compile_options(-pthread)
 
-    add_compile_options("$<$<CONFIG:RELWITHDEBINFO>:-O3>")
+    add_compile_options("$<$<CONFIG:RelWithDebInfo>:-O3>")
 
-    add_compile_options("$<$<CONFIG:RELEASE>:-O3>")
-    add_compile_options("$<$<CONFIG:RELEASE>:-g0>")
-    add_compile_options("$<$<CONFIG:RELEASE>:-DNDEBUG>")
+    add_compile_options("$<$<CONFIG:Release>:-O3>")
+    add_compile_options("$<$<CONFIG:Release>:-g0>")
 
-    add_compile_options("$<$<CONFIG:DEBUG>:-O0>")
+    add_compile_options("$<$<CONFIG:Debug>:-O0>")
 
 else()
     # see https://msdn.microsoft.com/en-us/library/fwkeyyhe.aspx for details
@@ -163,10 +145,9 @@ else()
     add_compile_options("$<$<CONFIG:RELWITHDEBINFO>:/Ox>")
     add_compile_options("$<$<CONFIG:RELWITHDEBINFO>:/ZI>")
 
-    add_compile_options("$<$<CONFIG:RELEASE>:/Ox>")
-    add_compile_options("$<$<CONFIG:RELEASE>:/D>")
-    add_compile_options("$<$<CONFIG:RELEASE>:/NDEBUG>")
-    add_compile_options("$<$<CONFIG:RELEASE>:/ZI>")
+    add_compile_options("$<$<CONFIG:Release>:/Ox>")
+    add_compile_options("$<$<CONFIG:Release>:/DNDEBUG>")
+    add_compile_options("$<$<CONFIG:Release>:/ZI>")
 
     add_compile_options("$<$<CONFIG:DEBUG>:/Od>")
 
@@ -177,14 +158,14 @@ else()
             #        Defines _MT and _DLL and causes the compiler to place the library name MSVCRT.lib into the .obj file.
             if(${flag_var} MATCHES "/MD")
                 string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-            endif(${flag_var} MATCHES "/MD")
+            endif()
 
             # /MDd	-- Defines _DEBUG, _MT, and _DLL and causes the application to use the debug multithread-specific and DLL-specific version of the run-time library.
             #          It also causes the compiler to place the library name MSVCRTD.lib into the .obj file.
             if(${flag_var} MATCHES "/MDd")
                 string(REGEX REPLACE "/MDd" "/MTd" ${flag_var} "${${flag_var}}")
-            endif(${flag_var} MATCHES "/MDd")
-        endforeach(flag_var)
+            endif()
+        endforeach()
 
         # Creates a multithreaded executable (static) file using LIBCMT.lib.
         add_compile_options(/MT)
@@ -215,12 +196,10 @@ else()
     # exception handling. c = If used with s (/EHsc), catches C++ exceptions only and tells the compiler to assume that functions declared as extern "C" never throw a C++ exception.
     add_compile_options(/EHsc)
 
-
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /INCREMENTAL:NO")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /PDBCOMPRESS")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:1572864")
 
-    #what does this do?
     set(DEF_INSTALL_CMAKE_DIR CMake)
 endif()
 
@@ -230,19 +209,19 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(ENABLE_ASSERTIONS OFF)
 endif()
 
-if (ENABLE_ASSERTIONS)
+if(ENABLE_ASSERTIONS)
     # NDEBUG was already removed.
 else()
     # Note this definition doesn't appear in the cache variables.
-    add_definitions(-DNDEBUG)
+    add_compile_definitions(NDEBUG)
     add_cxx_flag_if_supported("-fno-stack-protector")
-    add_definitions(-D_FORTIFY_SOURCE=0)
+    add_compile_definitions(_FORTIFY_SOURCE=0)
 endif()
 
 # -----------------------------------------------------------------------------
 # Flags
 # -----------------------------------------------------------------------------
-if (NOT WIN32)
+if(NOT WIN32)
     if(NOT ENABLE_TESTING AND ${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT COVERAGE)
         #dd_cxx_flag_if_supported("-fvisibility=hidden")
     endif()
@@ -265,7 +244,6 @@ if (NOT WIN32)
         add_cxx_flag_if_supported("-Wstrict-aliasing")
         add_cxx_flag_if_supported("-Wpointer-arith")
         add_cxx_flag_if_supported("-Wheader-guard")
-        add_cxx_flag_if_supported("-Wpointer-arith")
         add_cxx_flag_if_supported("-Wformat-nonliteral")
         add_cxx_flag_if_supported("-Winit-self")
         add_cxx_flag_if_supported("-Wparentheses")
@@ -278,8 +256,8 @@ if (NOT WIN32)
     endif()
 endif()
 
-if (NOT WIN32)
-    MESSAGE(STATUS "${CMAKE_C_FLAGS}")
+if(NOT WIN32)
+    message(STATUS "${CMAKE_C_FLAGS}")
     add_c_flag_if_supported("-std=c99")
     add_c_flag_if_supported("-Wall")
     add_c_flag_if_supported("-msse4.2")
@@ -291,8 +269,8 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 option(SANITIZE "Use Clang sanitizers. You MUST use clang++ as the compiler for this to work" OFF)
-if (SANITIZE)
-    MESSAGE(WARNING " --Using clang sanitizers -- you MUST use clang++ or the compile WILL fail")
+if(SANITIZE)
+    message(WARNING " --Using clang sanitizers -- you MUST use clang++ or the compile WILL fail")
     add_compile_options("-fsanitize=address")
     add_link_options("-fsanitize=address")
     # add_compile_options("-fsanitize=integer")
@@ -319,10 +297,14 @@ endif()
 # -----------------------------------------------------------------------------
 set(FPHSA_NAME_MISMATCHED 1) # Suppress warnings, see https://cmake.org/cmake/help/v3.17/module/FindPackageHandleStandardArgs.html
 
-# add compile defines
-set(COMPILE_DEFINES)
-foreach( d ${DirDefs} )
-    # message( STATUS "Found Define: " ${d} )
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
+
+# Collect all compile definitions set so far into a string for embedding
+# via @COMPILE_DEFINES@ in GitSHA1.cpp.in
+get_directory_property(DirDefs COMPILE_DEFINITIONS)
+set(COMPILE_DEFINES "")
+foreach(d ${DirDefs})
     set(COMPILE_DEFINES "${COMPILE_DEFINES} -D${d}")
 endforeach()
 message(STATUS "All defines at startup: ${COMPILE_DEFINES}")
@@ -354,51 +336,51 @@ function(SetVersionNumber PREFIX VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
         PARENT_SCOPE)
 endfunction()
 
-find_program (GIT_EXECUTABLE git)
-if (GIT_EXECUTABLE)
+find_program(GIT_EXECUTABLE git)
+if(GIT_EXECUTABLE)
   include(GetGitRevisionDescription)
   get_git_head_revision(GIT_REFSPEC GIT_SHA1)
-  MESSAGE(STATUS "GIT hash found: ${GIT_SHA1}")
+  message(STATUS "GIT hash found: ${GIT_SHA1}")
 else()
-  set(GIT_SHA "GIT-hash-notfound")
+  set(GIT_SHA1 "GIT-hash-notfound")
 endif()
 set(SBVA_FULL_VERSION "1.1.0")
 
 string(REPLACE "." ";" SBVA_FULL_VERSION_LIST ${SBVA_FULL_VERSION})
 SetVersionNumber("PROJECT" ${SBVA_FULL_VERSION_LIST})
-MESSAGE(STATUS "PROJECT_VERSION: ${PROJECT_VERSION}")
-MESSAGE(STATUS "PROJECT_VERSION_MAJOR: ${PROJECT_VERSION_MAJOR}")
-MESSAGE(STATUS "PROJECT_VERSION_MINOR: ${PROJECT_VERSION_MINOR}")
-MESSAGE(STATUS "PROJECT_VERSION_PATCH: ${PROJECT_VERSION_PATCH}")
+message(STATUS "PROJECT_VERSION: ${PROJECT_VERSION}")
+message(STATUS "PROJECT_VERSION_MAJOR: ${PROJECT_VERSION_MAJOR}")
+message(STATUS "PROJECT_VERSION_MINOR: ${PROJECT_VERSION_MINOR}")
+message(STATUS "PROJECT_VERSION_PATCH: ${PROJECT_VERSION_PATCH}")
 
 # ----------
 # manpage
 # ----------
-if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT EMSCRIPTEN)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT EMSCRIPTEN)
     find_program(HELP2MAN_FOUND help2man)
-    if (HELP2MAN_FOUND)
-        ADD_CUSTOM_TARGET(man_sbva
+    if(HELP2MAN_FOUND)
+        add_custom_target(man_sbva
             ALL
             DEPENDS sbva-bin
         )
 
-        ADD_CUSTOM_COMMAND(
+        add_custom_command(
             POST_BUILD
             TARGET man_sbva
             COMMAND help2man
             ARGS --version-string=${SBVA_FULL_VERSION} --help-option="-h" $<TARGET_FILE:sbva-bin> -o ${CMAKE_CURRENT_BINARY_DIR}/sbva.1
         )
 
-        INSTALL(
+        install(
             FILES ${CMAKE_CURRENT_BINARY_DIR}/sbva.1
             DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
 
         message(STATUS "Manpage will be created and installed")
     else()
-        MESSAGE(STATUS "Cannot find help2man, not creating manpage")
+        message(STATUS "Cannot find help2man, not creating manpage")
     endif()
 else()
-    MESSAGE(STATUS "Not on Linux, not creating manpage")
+    message(STATUS "Not on Linux, not creating manpage")
 endif()
 
 # -----------------------------------------------------------------------------
@@ -447,8 +429,7 @@ configure_file(sbvaConfig.cmake.in
 export(PACKAGE sbva)
 
 set(DEF_INSTALL_CMAKE_DIR lib/cmake/sbva)
-set(SBVA_INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH
-    "Installation directory for sbva CMake files")
+set(SBVA_INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for sbva CMake files")
 
 # Create sbvaConfig file
 set(EXPORT_TYPE "installed")
