@@ -18,11 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-include_directories(${PROJECT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${PROJECT_SOURCE_DIR}/eigen-3.4.0/)
-
-if (NOT WIN32)
+if(NOT WIN32)
     add_cxx_flag_if_supported("-Wno-bitfield-constant-conversion")
     #add_cxx_flag_if_supported("-Wduplicated-cond")
     #add_cxx_flag_if_supported("-Wduplicated-branches")
@@ -44,16 +40,22 @@ add_library(sbva
     sbva.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp)
 
+target_include_directories(sbva
+  PRIVATE
+    ${PROJECT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${PROJECT_SOURCE_DIR}/eigen-3.4.0/
+)
+
 set_target_properties(sbva PROPERTIES
-    PUBLIC_HEADER "${sbva_public_headers}"
     VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
     INSTALL_RPATH_USE_LINK_PATH TRUE
 )
 
-add_executable (sbva-bin main.cpp)
-add_executable (test test.cpp)
+add_executable(sbva-bin main.cpp)
+add_executable(test test.cpp)
 
 target_link_libraries(sbva-bin sbva)
 target_link_libraries(test sbva)
@@ -63,7 +65,7 @@ set_target_properties(test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
 )
 
-if (NOT WIN32)
+if(NOT WIN32)
     set_target_properties(sbva-bin PROPERTIES
     OUTPUT_NAME sbva
     RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
@@ -75,7 +77,11 @@ else()
     INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif()
 
-sbva_add_public_header(sbva ${CMAKE_CURRENT_SOURCE_DIR}/sbva.h )
+sbva_add_public_header(sbva ${CMAKE_CURRENT_SOURCE_DIR}/sbva.h)
+
+# Public headers are fully known now; the CopyPublicHeaders target below reads
+# this property, so it must be set before that target is created.
+get_target_property(sbva_public_headers sbva PUBLIC_HEADER)
 
 # -----------------------------------------------------------------------------
 # Copy public headers into build directory include directory.
@@ -84,7 +90,6 @@ sbva_add_public_header(sbva ${CMAKE_CURRENT_SOURCE_DIR}/sbva.h )
 # -----------------------------------------------------------------------------
 set(HEADER_DEST "${PROJECT_BINARY_DIR}/include/sbva")
 add_custom_target(CopyPublicHeaders ALL)
-get_target_property(sbva_public_headers sbva PUBLIC_HEADER)
 foreach(public_header ${sbva_public_headers})
     get_filename_component(HEADER_NAME ${public_header} NAME)
     add_custom_command(TARGET CopyPublicHeaders PRE_BUILD
