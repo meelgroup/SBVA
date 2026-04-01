@@ -401,6 +401,13 @@ export(
     FILE "${CMAKE_CURRENT_BINARY_DIR}/${SBVA_TARGETS_FILENAME}"
 )
 
+# Build-tree config (absolute paths, for use without installation)
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/sbvaConfig-buildtree.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/sbvaConfig.cmake"
+    @ONLY
+)
+
 # -----------------------------------------------------------------------------
 # Install-tree config and version files (relocatable via CMakePackageConfigHelpers)
 # -----------------------------------------------------------------------------
