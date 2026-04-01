@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
 # CMP0104 (CUDA architectures default) was introduced in 3.18; guard needed
 if(POLICY CMP0104)
@@ -62,13 +62,14 @@ endforeach()
 
 set(CMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY ON)
 set(CMAKE_EXPORT_PACKAGE_REGISTRY OFF)
-project(sbva)
+project(sbva VERSION 1.1.0 LANGUAGES C CXX)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 include(GenerateExportHeader)
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 message(STATUS "LIB directory is '${CMAKE_INSTALL_LIBDIR}'")
 message(STATUS "BIN directory is '${CMAKE_INSTALL_BINDIR}'")
@@ -260,15 +261,11 @@ endif()
 
 if(NOT WIN32)
     message(STATUS "${CMAKE_C_FLAGS}")
-    add_c_flag_if_supported("-std=c99")
     add_c_flag_if_supported("-Wall")
     add_c_flag_if_supported("-msse4.2")
     add_c_flag_if_supported("-mpopcnt")
     add_c_flag_if_supported("-mpclmul")
 endif()
-
-# generate JSON file of compile commands -- useful for code extension
-set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 option(SANITIZE "Use Clang sanitizers. You MUST use clang++ as the compiler for this to work" OFF)
 if(SANITIZE)
@@ -329,15 +326,6 @@ endmacro()
 # -----------------------------------------------------------------------------
 # Add GIT version
 # -----------------------------------------------------------------------------
-function(SetVersionNumber PREFIX VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
-  set(${PREFIX}_VERSION_MAJOR ${VERSION_MAJOR} PARENT_SCOPE)
-  set(${PREFIX}_VERSION_MINOR ${VERSION_MINOR} PARENT_SCOPE)
-  set(${PREFIX}_VERSION_PATCH ${VERSION_PATCH} PARENT_SCOPE)
-  set(${PREFIX}_VERSION
-        "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
-        PARENT_SCOPE)
-endfunction()
-
 find_program(GIT_EXECUTABLE git)
 if(GIT_EXECUTABLE)
   include(GetGitRevisionDescription)
@@ -346,10 +334,6 @@ if(GIT_EXECUTABLE)
 else()
   set(GIT_SHA1 "GIT-hash-notfound")
 endif()
-set(SBVA_FULL_VERSION "1.1.0")
-
-string(REPLACE "." ";" SBVA_FULL_VERSION_LIST ${SBVA_FULL_VERSION})
-SetVersionNumber("PROJECT" ${SBVA_FULL_VERSION_LIST})
 message(STATUS "PROJECT_VERSION: ${PROJECT_VERSION}")
 message(STATUS "PROJECT_VERSION_MAJOR: ${PROJECT_VERSION_MAJOR}")
 message(STATUS "PROJECT_VERSION_MINOR: ${PROJECT_VERSION_MINOR}")
@@ -370,7 +354,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT EMSCRIPTEN)
             POST_BUILD
             TARGET man_sbva
             COMMAND help2man
-            ARGS --version-string=${SBVA_FULL_VERSION} --help-option="-h" $<TARGET_FILE:sbva-bin> -o ${CMAKE_CURRENT_BINARY_DIR}/sbva.1
+            ARGS --version-string=${PROJECT_VERSION} --help-option="-h" $<TARGET_FILE:sbva-bin> -o ${CMAKE_CURRENT_BINARY_DIR}/sbva.1
         )
 
         install(
@@ -406,46 +390,43 @@ add_custom_target(uninstall
 )
 
 # -----------------------------------------------------------------------------
-# Export our targets so that other CMake based projects can interface with
-# the build of sbva in the build-tree
+# Export targets so that other CMake projects can use the build tree directly
 # -----------------------------------------------------------------------------
 set(SBVA_TARGETS_FILENAME "sbvaTargets.cmake")
 set(SBVA_CONFIG_FILENAME "sbvaConfig.cmake")
+set(SBVA_VERSION_FILENAME "sbvaConfigVersion.cmake")
 
-# Export targets
-set(MY_TARGETS sbva)
 export(
-    TARGETS ${MY_TARGETS}
+    TARGETS sbva
     FILE "${CMAKE_CURRENT_BINARY_DIR}/${SBVA_TARGETS_FILENAME}"
 )
 
-# Create sbvaConfig file
-set(EXPORT_TYPE "Build-tree")
-set(CONF_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/include")
-configure_file(sbvaConfig.cmake.in
-    "${CMAKE_CURRENT_BINARY_DIR}/${SBVA_CONFIG_FILENAME}" @ONLY
-)
-
-# Export this package to the CMake user package registry
-# Now the user can just use find_package(sbva) on their system
-export(PACKAGE sbva)
-
+# -----------------------------------------------------------------------------
+# Install-tree config and version files (relocatable via CMakePackageConfigHelpers)
+# -----------------------------------------------------------------------------
 set(DEF_INSTALL_CMAKE_DIR lib/cmake/sbva)
 set(SBVA_INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for sbva CMake files")
+set(SBVA_INSTALL_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}/sbva")
 
-# Create sbvaConfig file
-set(EXPORT_TYPE "installed")
-set(CONF_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-configure_file(sbvaConfig.cmake.in
-   "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${SBVA_CONFIG_FILENAME}" @ONLY
+configure_package_config_file(sbvaConfig.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${SBVA_CONFIG_FILENAME}"
+    INSTALL_DESTINATION "${SBVA_INSTALL_CMAKE_DIR}"
+    PATH_VARS SBVA_INSTALL_INCLUDEDIR
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${SBVA_VERSION_FILENAME}"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
 )
 
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${SBVA_CONFIG_FILENAME}"
+    "${CMAKE_CURRENT_BINARY_DIR}/${SBVA_VERSION_FILENAME}"
     DESTINATION "${SBVA_INSTALL_CMAKE_DIR}"
 )
 
-# Install the export set for use with the install-tree
+# Install the export set for use with the install tree
 install(
     EXPORT ${SBVA_EXPORT_NAME}
     DESTINATION "${SBVA_INSTALL_CMAKE_DIR}"
