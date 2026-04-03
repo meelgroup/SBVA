@@ -85,11 +85,6 @@ option(BUILD_SHARED_LIBS "Build the shared library" ON)
 if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
     if(NOT BUILD_SHARED_LIBS)
         message(STATUS "Compiling for static library use")
-        if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -Wl,--whole-archive -ldl -Wl,--no-whole-archive -static ")
-            #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
-        endif()
-
         set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
         # removing -rdynamic that's automatically added
