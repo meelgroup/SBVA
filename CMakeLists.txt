@@ -81,10 +81,6 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 option(BUILD_SHARED_LIBS "Build the shared library" ON)
-option(STATICCOMPILE "Compile to static executable" OFF)
-if(STATICCOMPILE)
-    set(BUILD_SHARED_LIBS OFF)
-endif()
 
 if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
     if(NOT BUILD_SHARED_LIBS)
@@ -153,26 +149,6 @@ else()
     add_compile_options("$<$<CONFIG:Release>:/ZI>")
 
     add_compile_options("$<$<CONFIG:DEBUG>:/Od>")
-
-    if (STATICCOMPILE)
-        # We statically link to reduce dependencies
-        foreach(flag_var CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-            # /MD -- Causes the application to use the multithread-specific and DLL-specific version of the run-time library.
-            #        Defines _MT and _DLL and causes the compiler to place the library name MSVCRT.lib into the .obj file.
-            if(${flag_var} MATCHES "/MD")
-                string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-            endif()
-
-            # /MDd	-- Defines _DEBUG, _MT, and _DLL and causes the application to use the debug multithread-specific and DLL-specific version of the run-time library.
-            #          It also causes the compiler to place the library name MSVCRTD.lib into the .obj file.
-            if(${flag_var} MATCHES "/MDd")
-                string(REGEX REPLACE "/MDd" "/MTd" ${flag_var} "${${flag_var}}")
-            endif()
-        endforeach()
-
-        # Creates a multithreaded executable (static) file using LIBCMT.lib.
-        add_compile_options(/MT)
-    endif()
 
     # buffers security check
     add_compile_options(/GS)

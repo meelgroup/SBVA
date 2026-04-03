@@ -40,7 +40,6 @@ const char* SBVAImpl::get_compilation_env()
     "CMAKE_CXX_COMPILER = @CMAKE_CXX_COMPILER@ | "
     "CMAKE_CXX_FLAGS = @CMAKE_CXX_FLAGS@ | "
     "COMPILE_DEFINES = @COMPILE_DEFINES@ | "
-    "STATICCOMPILE = @STATICCOMPILE@ | "
     "ENABLE_ASSERTIONS = @ENABLE_ASSERTIONS@ | "
     ;
     return compilation_env;
