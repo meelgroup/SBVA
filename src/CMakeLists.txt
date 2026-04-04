@@ -89,10 +89,10 @@ get_target_property(sbva_public_headers sbva PUBLIC_HEADER)
 # this.
 # -----------------------------------------------------------------------------
 set(HEADER_DEST "${PROJECT_BINARY_DIR}/include/sbva")
-add_custom_target(CopyPublicHeaders ALL)
+add_custom_target(CopyPublicHeaders_sbva ALL)
 foreach(public_header ${sbva_public_headers})
     get_filename_component(HEADER_NAME ${public_header} NAME)
-    add_custom_command(TARGET CopyPublicHeaders PRE_BUILD
+    add_custom_command(TARGET CopyPublicHeaders_sbva PRE_BUILD
                        COMMAND ${CMAKE_COMMAND} -E make_directory
                                "${HEADER_DEST}"
                        COMMAND ${CMAKE_COMMAND} -E echo
