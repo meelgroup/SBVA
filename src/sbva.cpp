@@ -960,6 +960,8 @@ private:
 namespace SBVA {
 using namespace SBVAImpl;
 
+CNF::CNF() = default;
+
 CNF::~CNF() {
     Formula* f = (Formula*)data;
     delete f;
