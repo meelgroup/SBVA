@@ -64,6 +64,7 @@ enum Tiebreak {
 };
 
 struct SBVA_PUBLIC CNF {
+    CNF() = default;
     ~CNF();
     void run(Tiebreak t);
 
