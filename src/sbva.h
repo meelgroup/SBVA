@@ -33,17 +33,9 @@ THE SOFTWARE.
 
 // Visibility export macros for proper symbol visibility with -fvisibility=hidden
 #if defined(_WIN32) || defined(__CYGWIN__)
-  #ifdef sbva_EXPORTS
     #define SBVA_PUBLIC __declspec(dllexport)
-  #else
-    #define SBVA_PUBLIC __declspec(dllimport)
-  #endif
 #else
-  #if defined(sbva_EXPORTS)
     #define SBVA_PUBLIC __attribute__((visibility("default")))
-  #else
-    #define SBVA_PUBLIC
-  #endif
 #endif
 
 namespace SBVA {
