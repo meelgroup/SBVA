@@ -24,12 +24,10 @@ THE SOFTWARE.
 #pragma once
 
 #include <cstdio>
-#include <ctime>
 #include <limits>
 #include <vector>
 #include <cstdint>
 #include <utility>
-#include <functional>
 
 // Visibility export macros for proper symbol visibility with -fvisibility=hidden
 #if defined(_WIN32) || defined(__CYGWIN__)
