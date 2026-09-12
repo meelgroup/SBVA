@@ -297,14 +297,9 @@ endmacro()
 # -----------------------------------------------------------------------------
 # Add GIT version
 # -----------------------------------------------------------------------------
-find_program(GIT_EXECUTABLE git)
-if(GIT_EXECUTABLE)
-  include(GetGitRevisionDescription)
-  get_git_head_revision(GIT_REFSPEC GIT_SHA1)
-  message(STATUS "GIT hash found: ${GIT_SHA1}")
-else()
-  set(GIT_SHA1 "GIT-hash-notfound")
-endif()
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/GetGitSHA1.cmake")
+get_git_sha1(GIT_SHA1)
+message(STATUS "GIT hash found: ${GIT_SHA1}")
 message(STATUS "PROJECT_VERSION: ${PROJECT_VERSION}")
 message(STATUS "PROJECT_VERSION_MAJOR: ${PROJECT_VERSION_MAJOR}")
 message(STATUS "PROJECT_VERSION_MINOR: ${PROJECT_VERSION_MINOR}")
