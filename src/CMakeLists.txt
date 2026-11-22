@@ -58,12 +58,13 @@ set_target_properties(sbva PROPERTIES
 )
 
 add_executable(sbva-bin main.cpp)
-add_executable(test test.cpp)
+# "test" is reserved once a project including sbva turns CTest on
+add_executable(sbva-test test.cpp)
 
 target_link_libraries(sbva-bin sbva)
-target_link_libraries(test sbva)
+target_link_libraries(sbva-test sbva)
 
-set_target_properties(test PROPERTIES
+set_target_properties(sbva-test PROPERTIES
     OUTPUT_NAME test
     RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
 )
